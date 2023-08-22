@@ -22,16 +22,10 @@ def process_directory(base_path, old_string, new_string, recursive, folder, file
             dirs[:] = [d for d in dirs if not d.startswith(".")]
             filenames = [f for f in filenames if not f.startswith(".")]
 
-        if folder:
-            for d in dirs:
-                if old_string in d:
-                    old_path = os.path.join(root, d)
-                    new_path = os.path.join(root, d.replace(old_string, new_string))
-                    if verbose:
-                        print(f"Renaming directory from: {old_path} to: {new_path}")
-                    if not preview:
-                        os.rename(old_path, new_path)
-        
+        if content:
+            for f in filenames:
+                replace_content(os.path.join(root, f), old_string, new_string, preview, verbose)
+
         if files:
             for f in filenames:
                 if old_string in f:
@@ -41,11 +35,17 @@ def process_directory(base_path, old_string, new_string, recursive, folder, file
                         print(f"Renaming file from: {old_path} to: {new_path}")
                     if not preview:
                         os.rename(old_path, new_path)
+                        
+        if folder:
+            for d in dirs:
+                if old_string in d:
+                    old_path = os.path.join(root, d)
+                    new_path = os.path.join(root, d.replace(old_string, new_string))
+                    if verbose:
+                        print(f"Renaming directory from: {old_path} to: {new_path}")
+                    if not preview:
+                        os.rename(old_path, new_path)
                     
-        if content:
-            for f in filenames:
-                replace_content(os.path.join(root, f), old_string, new_string, preview, verbose)
-
         if not recursive:
             break
 
