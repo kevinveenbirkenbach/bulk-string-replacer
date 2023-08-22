@@ -5,14 +5,15 @@ def replace_content(path, old_string, new_string, preview, verbose):
     with open(path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    new_content = content.replace(old_string, new_string)
-    
-    if verbose:
-        print(f"Replacing content in: {path}")
+    if old_string in content:  # Prüfen, ob der alte String im Inhalt vorkommt
+        new_content = content.replace(old_string, new_string)
         
-    if not preview:
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(new_content)
+        if verbose:
+            print(f"Replacing content in: {path}")
+            
+        if not preview:
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
 
 def process_directory(base_path, old_string, new_string, recursive, folder, files, content, preview, verbose, hidden):
     for root, dirs, filenames in os.walk(base_path):
