@@ -8,13 +8,13 @@ def replace_content(path, old_string, new_string, preview, verbose):
     if old_string in content:
         new_content = content.replace(old_string, new_string)
         
-        verbose(f"Replacing content in: {path}",verbose)
+        print_verbose(f"Replacing content in: {path}",verbose)
             
         if not preview:
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(new_content)
 
-def verbose(content,verbose):
+def print_verbose(content,verbose):
     if verbose:
         print(content)
     
@@ -38,7 +38,7 @@ def process_directory(base_path, old_string, new_string, recursive, folder, file
                 if old_string in f:
                     old_path = os.path.join(root, f)
                     new_path = os.path.join(root, f.replace(old_string, new_string))
-                    verbose(f"Renaming file from: {old_path} to: {new_path}",verbose)
+                    print_verbose(f"Renaming file from: {old_path} to: {new_path}",verbose)
                     if not preview:
                         os.rename(old_path, new_path)
 
@@ -78,7 +78,7 @@ def main():
     expanded_paths = [os.path.expanduser(path) for path in args.paths]
 
     for path in expanded_paths:
-        verbose("Replacing in path: " + path,verbose)
+        print_verbose(f"Replacing in path: {path}",args.verbose)
         process_directory(path, args.old_string, args.new_string, args.recursive, args.folder, args.files, args.content, args.preview, args.verbose, args.hidden)
 
 if __name__ == "__main__":
