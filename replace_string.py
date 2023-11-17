@@ -55,7 +55,7 @@ def process_directory(base_path, old_string, new_string, recursive, folder, file
 
     # Ordnernamen ändern nach dem os.walk() Durchlauf
     for old_path, new_path in directories_to_rename:
-        verbose(f"Renaming directory from: {old_path} to: {new_path}")
+        print_verbose(f"Renaming directory from: {old_path} to: {new_path}",verbose)
         if not preview:
             os.rename(old_path, new_path)
 
