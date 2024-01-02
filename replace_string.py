@@ -2,17 +2,21 @@ import os
 import argparse
 
 def replace_content(path, old_string, new_string, preview, verbose):
-    with open(path, 'r', encoding='utf-8') as f:
-        content = f.read()
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            content = f.read()
 
-    if old_string in content:
-        new_content = content.replace(old_string, new_string)
-        
-        print_verbose(f"Replacing content in: {path}",verbose)
+        if old_string in content:
+            new_content = content.replace(old_string, new_string)
             
-        if not preview:
-            with open(path, 'w', encoding='utf-8') as f:
-                f.write(new_content)
+            print_verbose(f"Replacing content in: {path}", verbose)
+                
+            if not preview:
+                with open(path, 'w', encoding='utf-8') as f:
+                    f.write(new_content)
+
+    except UnicodeDecodeError as e:
+        print_verbose(f"Warning: Unicode decode error encountered in file {path}. Skipping file.", verbose)
 
 def print_verbose(content,verbose):
     if verbose:
