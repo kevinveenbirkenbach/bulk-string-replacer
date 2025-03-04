@@ -1,70 +1,80 @@
-# Bulk String Replacer
+# Bulk String Replacer CLI (bsr) 🔄
 
-`bulk-string-replacer` is a Python-based command-line utility that allows for comprehensive search and replacement operations within file and folder names, as well as within file contents across specified directories. It's designed to handle bulk updates quickly and efficiently, with support for recursive directory traversal, hidden files, and a preview mode to review changes before they're applied.
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html) [![GitHub stars](https://img.shields.io/github/stars/kevinveenbirkenbach/bulk-string-replacer.svg?style=social)](https://github.com/kevinveenbirkenbach/bulk-string-replacer/stargazers)
 
-## Author
+Bulk String Replacer CLI (bsr) is a powerful Python-based command-line tool that lets you search and replace strings in file names, folder names, and within file contents across multiple directories. Perfect for performing bulk updates quickly and efficiently, bsr supports recursive traversal, hidden files, and a preview mode so you can review changes before they’re applied. 🔧📂
 
-Kevin Veen-Birkenbach
-- 📧 Email: [kevin@veen.world](mailto:kevin@veen.world)
-- 🌍 Website: [https://www.veen.world/](https://www.veen.world/)
+---
 
-## Background
+## 🛠 Features
 
-Learn more about the development and use cases of this tool in the [original conversation with the developer](https://chat.openai.com/share/cfdbc008-8374-47f8-8853-2e00ee27c959).
+- **Comprehensive Replacement:** Replace strings in folder names, file names, and inside file contents.
+- **Recursive Processing:** Traverse directories recursively to update all matching files.
+- **Hidden Files Support:** Option to include hidden files and directories.
+- **Preview Mode:** Preview changes without modifying any files.
+- **Verbose Output:** Display detailed logs of the operations performed.
 
-## Getting Started
+---
 
-### Prerequisites
+## 📥 Installation
 
-- Python 3.x
-- Access to a command-line interface
-
-### Installation
-
-Clone the repository to your local machine:
+Install Bulk String Replacer CLI easily via [Kevin's Package Manager](https://github.com/kevinveenbirkenbach/package-manager) under the alias `bsr`:
 
 ```bash
-git clone https://github.com/kevinveenbirkenbach/bulk-string-replacer.git
+package-manager install bsr
 ```
 
-Change into the project directory:
+This command makes the tool globally available as `bsr` in your terminal. 🚀
+
+---
+
+## 🚀 Usage
+
+Once installed, run Bulk String Replacer CLI using the alias:
 
 ```bash
-cd bulk-string-replacer
+bsr old_string --new-string "replacement_value" [options] [paths...]
 ```
 
-### Usage
+### Options
 
-Run the script with Python, specifying your target paths, the string to be replaced, and the new string:
+- **`old_string`**: The string to search for and replace.
+- **`--new-string`**: The string that will replace `old_string` (default is an empty string).
+- **`--recursive`**: Process all subdirectories and files recursively.
+- **`--folder`**: Replace occurrences within folder names.
+- **`--files`**: Replace occurrences within file names.
+- **`--content`**: Replace occurrences inside file contents.
+- **`--preview`**: Preview changes without applying them.
+- **`--verbose`**: Display detailed logs during execution.
+- **`--hidden`**: Include hidden files and directories in the operation.
+
+### Example Command
 
 ```bash
-python replace_string.py old_string --new-string new_string_value --options paths...
+bsr "old_value" --new-string "new_value" --recursive --verbose /path/to/first/directory /path/to/second/directory
 ```
 
-#### Options
+Replace `/path/to/first/directory` and `/path/to/second/directory` with the paths you wish to process.
 
-- `old_string`: The string you want to search for and replace.
-- `--new-string`: The string that will replace `old_string`. Defaults to an empty string if not specified.
-- `--recursive`: Recursively process all subdirectories and files within the given paths.
-- `--folder`: Replace string occurrences within folder names.
-- `--files`: Replace string occurrences within file names.
-- `--content`: Replace string occurrences within the contents of the files.
-- `--preview`: Preview changes without applying them. No files will be modified.
-- `--verbose`: Output detailed information during the execution of the script.
-- `--hidden`: Include hidden files and directories in the operation.
+---
 
-Paths are specified at the end of the command, separated by spaces. For example:
+## 🧑‍💻 Author
 
-```bash
-python replace_string.py "search_string" --new-string "replacement_string" --recursive --verbose /path/to/first/directory /path/to/second/directory
-```
+Developed by **Kevin Veen-Birkenbach**  
+- 📧 [kevin@veen.world](mailto:kevin@veen.world)  
+- 🌐 [https://www.veen.world/](https://www.veen.world/)
 
-Replace `/path/to/first/directory` and `/path/to/second/directory` with the actual paths you want to process.
+Learn more about the development of this tool in the [original ChatGPT conversation](https://chat.openai.com/share/cfdbc008-8374-47f8-8853-2e00ee27c959).
 
-## Contributions
+---
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue on the GitHub repository.
+## 📜 License
 
-## License
+This project is licensed under the **GNU Affero General Public License, Version 3, 19 November 2007**.  
+For more details, see the [LICENSE](./LICENSE) file.
 
-This project is open-sourced under the GNU Affero General Public License v3.0. See the `LICENSE` file for more details.
+---
+
+## 🤝 Contributions
+
+Contributions are welcome! Feel free to fork the repository, submit pull requests, or open issues to help improve Bulk String Replacer CLI. Let’s make bulk updates even easier! 😊
