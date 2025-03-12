@@ -21,6 +21,7 @@ Bulk String Replacer CLI (bsr) is a powerful Python-based command-line tool that
 Install Bulk String Replacer CLI easily via [Kevin's Package Manager](https://github.com/kevinveenbirkenbach/package-manager) under the alias `bsr`:
 
 ```bash
+package-manager clone bsr
 package-manager install bsr
 ```
 
