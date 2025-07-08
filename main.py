@@ -18,21 +18,19 @@ def replace_content(path, old_string, new_string, preview, verbose):
     except UnicodeDecodeError:
         print_verbose(f"Warning: Unicode decode error in file {path}. Skipping.", verbose)
 
-
 def print_verbose(message, verbose):
     if verbose:
         print(message)
-
 
 def process_directory(base_path, old_string, new_string, recursive,
                       rename_folders, rename_files, replace_in_content,
                       preview, verbose, include_hidden, rename_paths):
     """
-    Traverse directory tree at base_path and perform operations based on flags:
-    - replace_in_content: replace contents
+    Traverse directory tree and perform operations based on flags:
+    - replace_in_content: replace inside file contents
     - rename_files: rename files whose names contain old_string
     - rename_folders: rename folders whose names contain old_string
-    - rename_paths: treat old_string as a relative path and move to new_string
+    - rename_paths: match old_string as a relative path and move matching items to new_string
     """
     # Full-path move logic
     if rename_paths:
@@ -52,18 +50,23 @@ def process_directory(base_path, old_string, new_string, recursive,
                         os.rename(full_src, full_dst)
             if not recursive:
                 break
-        return
+        # Only return early when only path-mode is active
+        if not (rename_files or replace_in_content):
+            return
 
+    # Collect folder renames to apply after traversal
     folders_to_rename = []
     for root, dirs, files in os.walk(base_path):
         if not include_hidden:
             dirs[:] = [d for d in dirs if not d.startswith('.')]
             files = [f for f in files if not f.startswith('.')]
 
+        # Content replacement
         if replace_in_content:
             for f in files:
                 replace_content(os.path.join(root, f), old_string, new_string, preview, verbose)
 
+        # File renaming
         if rename_files:
             for f in files:
                 if old_string in f:
@@ -73,6 +76,7 @@ def process_directory(base_path, old_string, new_string, recursive,
                     if not preview:
                         os.rename(src, dst)
 
+        # Gather folder renames
         if rename_folders:
             for d in dirs:
                 if old_string in d:
@@ -83,11 +87,11 @@ def process_directory(base_path, old_string, new_string, recursive,
         if not recursive:
             break
 
+    # Apply folder renames
     for src, dst in folders_to_rename:
         print_verbose(f"Renaming directory: {src} → {dst}", verbose)
         if not preview:
             os.rename(src, dst)
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -97,20 +101,30 @@ def main():
     parser.add_argument('old_string', help="String or relative path to replace.")
     parser.add_argument('-n', '--new', dest='new_string', default='',
                         help="Replacement string or new relative path.")
-
-    parser.add_argument('-r', '--recursive', action='store_true', help="Recurse into subdirectories.")
-    parser.add_argument('-F', '--folders', action='store_true', help="Rename folder names.")
-    parser.add_argument('-f', '--files', action='store_true', help="Rename file names.")
-    parser.add_argument('-c', '--content', action='store_true', help="Replace inside file contents.")
-    parser.add_argument('-p', '--preview', action='store_true', help="Preview only; no changes.")
+    parser.add_argument('-r', '--recursive', action='store_true',
+                        help="Recurse into subdirectories.")
+    parser.add_argument('-F', '--folders', action='store_true',
+                        help="Rename folder names.")
+    parser.add_argument('-f', '--files', action='store_true',
+                        help="Rename file names.")
+    parser.add_argument('-c', '--content', action='store_true',
+                        help="Replace inside file contents.")
+    parser.add_argument('-p', '--preview', action='store_true',
+                        help="Preview only; no changes.")
     parser.add_argument('-P', '--path', dest='rename_paths', action='store_true',
                         help="Match old_string as relative path and move to new_string path.")
-    parser.add_argument('-v', '--verbose', action='store_true', help="Verbose mode.")
-    parser.add_argument('-H', '--hidden', action='store_true', help="Include hidden files and folders.")
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help="Verbose mode.")
+    parser.add_argument('-H', '--hidden', action='store_true',
+                        help="Include hidden files and folders.")
 
     args = parser.parse_args()
-    base_paths = [os.path.expanduser(p) for p in args.paths]
 
+    # Disallow using --path and --folders together
+    if args.rename_paths and args.folders:
+        parser.error("Cannot use --path and --folders together.")
+
+    base_paths = [os.path.expanduser(p) for p in args.paths]
     for base in base_paths:
         print_verbose(f"Processing: {base}", args.verbose)
         process_directory(
@@ -128,5 +142,4 @@ def main():
         )
 
 if __name__ == '__main__':
-    main()
     main()
