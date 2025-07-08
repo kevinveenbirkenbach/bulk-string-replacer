@@ -1,6 +1,6 @@
 # Bulk String Replacer CLI (bsr) 🔄
-[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-blue?logo=github)](https://github.com/sponsors/kevinveenbirkenbach) [![Patreon](https://img.shields.io/badge/Support-Patreon-orange?logo=patreon)](https://www.patreon.com/c/kevinveenbirkenbach) [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20Coffee-Funding-yellow?logo=buymeacoffee)](https://buymeacoffee.com/kevinveenbirkenbach) [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://s.veen.world/paypaldonate)
 
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-blue?logo=github)](https://github.com/sponsors/kevinveenbirkenbach) [![Patreon](https://img.shields.io/badge/Support-Patreon-orange?logo=patreon)](https://www.patreon.com/c/kevinveenbirkenbach) [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20Coffee-Funding-yellow?logo=buymeacoffee)](https://buymeacoffee.com/kevinveenbirkenbach) [![PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://s.veen.world/paypaldonate)
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html) [![GitHub stars](https://img.shields.io/github/stars/kevinveenbirkenbach/bulk-string-replacer.svg?style=social)](https://github.com/kevinveenbirkenbach/bulk-string-replacer/stargazers)
 
@@ -10,11 +10,12 @@ Bulk String Replacer CLI (bsr) is a powerful Python-based command-line tool that
 
 ## 🛠 Features
 
-- **Comprehensive Replacement:** Replace strings in folder names, file names, and inside file contents.
-- **Recursive Processing:** Traverse directories recursively to update all matching files.
-- **Hidden Files Support:** Option to include hidden files and directories.
-- **Preview Mode:** Preview changes without modifying any files.
-- **Verbose Output:** Display detailed logs of the operations performed.
+* **Comprehensive Replacement:** Replace strings in folder names, file names, and inside file contents.
+* **Recursive Processing:** Traverse directories recursively to update all matching files.
+* **Hidden Files Support:** Option to include hidden files and directories.
+* **Preview Mode:** Preview changes without modifying any files.
+* **Verbose Output:** Display detailed logs of the operations performed.
+* **Full-Path Moves:** Match an `old_string` as a relative path (including `/`) and move matching subtrees to a new location.
 
 ---
 
@@ -36,36 +37,50 @@ This command makes the tool globally available as `bsr` in your terminal. 🚀
 Once installed, run Bulk String Replacer CLI using the alias:
 
 ```bash
-bsr old_string --new-string "replacement_value" [options] [paths...]
+bsr old_string -n "replacement_value" [options] [paths...]
 ```
 
 ### Options
 
-- **`old_string`**: The string to search for and replace.
-- **`--new-string`**: The string that will replace `old_string` (default is an empty string).
-- **`--recursive`**: Process all subdirectories and files recursively.
-- **`--folder`**: Replace occurrences within folder names.
-- **`--files`**: Replace occurrences within file names.
-- **`--content`**: Replace occurrences inside file contents.
-- **`--preview`**: Preview changes without applying them.
-- **`--verbose`**: Display detailed logs during execution.
-- **`--hidden`**: Include hidden files and directories in the operation.
+* **`old_string`**: The string or relative path to search for.
+* **`-n, --new`**: The replacement string or new relative path (default is empty string).
+* **`-r, --recursive`**: Recurse into all subdirectories and files.
+* **`-F, --folders`**: Replace occurrences within folder names.
+* **`-f, --files`**: Replace occurrences within file names.
+* **`-c, --content`**: Replace occurrences inside file contents.
+* **`-P, --path`**: Match `old_string` as a relative path (e.g. `vars/config.yml`) and move matching subtree to `new` relative path.
+* **`-p, --preview`**: Preview changes without applying them.
+* **`-v, --verbose`**: Display detailed logs during execution.
+* **`-H, --hidden`**: Include hidden files and directories in the operation.
 
-### Example Command
+### Examples
+
+Replace text within filenames, folder names, and file contents:
 
 ```bash
-bsr "old_value" --new-string "new_value" --recursive --verbose /path/to/first/directory /path/to/second/directory
+bsr "old_value" -n "new_value" -r -F -f -c /path/to/dir
 ```
 
-Replace `/path/to/first/directory` and `/path/to/second/directory` with the paths you wish to process.
+Move every `vars/configuration.yml` to `config/main.yml` in each parent directory:
+
+```bash
+bsr "vars/configuration.yml" -n "config/main.yml" -r -P ./
+```
+
+Preview a full-path move without changes:
+
+```bash
+bsr "vars/configuration.yml" -n "config/main.yml" -r -P -p ./
+```
 
 ---
 
 ## 🧑‍💻 Author
 
-Developed by **Kevin Veen-Birkenbach**  
-- 📧 [kevin@veen.world](mailto:kevin@veen.world)  
-- 🌐 [https://www.veen.world/](https://www.veen.world/)
+Developed by **Kevin Veen-Birkenbach**
+
+* 📧 [kevin@veen.world](mailto:kevin@veen.world)
+* 🌐 [https://www.veen.world/](https://www.veen.world/)
 
 Learn more about the development of this tool in the [original ChatGPT conversation](https://chat.openai.com/share/cfdbc008-8374-47f8-8853-2e00ee27c959).
 
@@ -73,7 +88,7 @@ Learn more about the development of this tool in the [original ChatGPT conversat
 
 ## 📜 License
 
-This project is licensed under the **GNU Affero General Public License, Version 3, 19 November 2007**.  
+This project is licensed under the **GNU Affero General Public License, Version 3, 19 November 2007**.
 For more details, see the [LICENSE](./LICENSE) file.
 
 ---

@@ -3,136 +3,130 @@ import os
 import argparse
 
 def replace_content(path, old_string, new_string, preview, verbose):
+    """
+    Replace occurrences of old_string with new_string inside the file at path.
+    """
     try:
         with open(path, 'r', encoding='utf-8') as f:
             content = f.read()
-
         if old_string in content:
             new_content = content.replace(old_string, new_string)
-            
             print_verbose(f"Replacing content in: {path}", verbose)
-                
             if not preview:
-                with open(path, 'w', encoding='utf-8') as f:
-                    f.write(new_content)
+                with open(path, 'w', encoding='utf-8') as fw:
+                    fw.write(new_content)
+    except UnicodeDecodeError:
+        print_verbose(f"Warning: Unicode decode error in file {path}. Skipping.", verbose)
 
-    except UnicodeDecodeError as e:
-        print_verbose(f"Warning: Unicode decode error encountered in file {path}. Skipping file.", verbose)
 
-def print_verbose(content,verbose):
+def print_verbose(message, verbose):
     if verbose:
-        print(content)
-    
+        print(message)
 
-def process_directory(base_path, old_string, new_string, recursive, folder, files, content, preview, verbose, hidden):
-    # Eine Liste, um die Pfade der umzubenennenden Ordner zu speichern
-    directories_to_rename = []
 
-    for root, dirs, filenames in os.walk(base_path):
-        # Wenn "hidden" nicht gesetzt ist, versteckte Dateien/Ordner aus der Liste entfernen
-        if not hidden:
-            dirs[:] = [d for d in dirs if not d.startswith(".")]
-            filenames = [f for f in filenames if not f.startswith(".")]
+def process_directory(base_path, old_string, new_string, recursive,
+                      rename_folders, rename_files, replace_in_content,
+                      preview, verbose, include_hidden, rename_paths):
+    """
+    Traverse directory tree at base_path and perform operations based on flags:
+    - replace_in_content: replace contents
+    - rename_files: rename files whose names contain old_string
+    - rename_folders: rename folders whose names contain old_string
+    - rename_paths: treat old_string as a relative path and move to new_string
+    """
+    # Full-path move logic
+    if rename_paths:
+        for root, dirs, files in os.walk(base_path):
+            if not include_hidden:
+                dirs[:] = [d for d in dirs if not d.startswith('.')]
+                files = [f for f in files if not f.startswith('.')]
+            for name in files + dirs:
+                full_src = os.path.join(root, name)
+                rel = os.path.relpath(full_src, base_path)
+                if old_string in rel:
+                    new_rel = rel.replace(old_string, new_string)
+                    full_dst = os.path.join(base_path, new_rel)
+                    print_verbose(f"Moving {full_src} → {full_dst}", verbose)
+                    if not preview:
+                        os.makedirs(os.path.dirname(full_dst), exist_ok=True)
+                        os.rename(full_src, full_dst)
+            if not recursive:
+                break
+        return
 
-        if content:
-            for f in filenames:
+    folders_to_rename = []
+    for root, dirs, files in os.walk(base_path):
+        if not include_hidden:
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            files = [f for f in files if not f.startswith('.')]
+
+        if replace_in_content:
+            for f in files:
                 replace_content(os.path.join(root, f), old_string, new_string, preview, verbose)
 
-        if files:
-            for f in filenames:
+        if rename_files:
+            for f in files:
                 if old_string in f:
-                    old_path = os.path.join(root, f)
-                    new_path = os.path.join(root, f.replace(old_string, new_string))
-                    print_verbose(f"Renaming file from: {old_path} to: {new_path}",verbose)
+                    src = os.path.join(root, f)
+                    dst = os.path.join(root, f.replace(old_string, new_string))
+                    print_verbose(f"Renaming file: {src} → {dst}", verbose)
                     if not preview:
-                        os.rename(old_path, new_path)
+                        os.rename(src, dst)
 
-        # Pfade von zu ändernden Ordnern speichern
-        if folder:
+        if rename_folders:
             for d in dirs:
                 if old_string in d:
-                    old_path = os.path.join(root, d)
-                    new_path = os.path.join(root, d.replace(old_string, new_string))
-                    directories_to_rename.append((old_path, new_path))
+                    src = os.path.join(root, d)
+                    dst = os.path.join(root, d.replace(old_string, new_string))
+                    folders_to_rename.append((src, dst))
 
         if not recursive:
             break
 
-    # Ordnernamen ändern nach dem os.walk() Durchlauf
-    for old_path, new_path in directories_to_rename:
-        print_verbose(f"Renaming directory from: {old_path} to: {new_path}",verbose)
+    for src, dst in folders_to_rename:
+        print_verbose(f"Renaming directory: {src} → {dst}", verbose)
         if not preview:
-            os.rename(old_path, new_path)
+            os.rename(src, dst)
+
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Replace strings in directories and files."
+        description="Bulk string replacer with optional full-path moves."
     )
+    parser.add_argument('paths', nargs='+', help="Base directories to process.")
+    parser.add_argument('old_string', help="String or relative path to replace.")
+    parser.add_argument('-n', '--new', dest='new_string', default='',
+                        help="Replacement string or new relative path.")
 
-    # positional args
-    parser.add_argument(
-        'paths',
-        nargs='+',
-        help="Paths in which replacements should be made."
-    )
-    parser.add_argument(
-        'old_string',
-        help="The string to be replaced."
-    )
-
-    # options with short and long flags
-    parser.add_argument(
-        '-n', '--new-string',
-        dest='new_string',
-        default="",
-        help="The string to replace with. Default is empty string."
-    )
-    parser.add_argument(
-        '-r', '--recursive',
-        action='store_true',
-        help="Replace in all subdirectories and files."
-    )
-    parser.add_argument(
-        '-F', '--folder',
-        action='store_true',
-        help="Replace in folder names."
-    )
-    parser.add_argument(
-        '-f', '--files',
-        action='store_true',
-        help="Replace in file names."
-    )
-    parser.add_argument(
-        '-c', '--content',
-        action='store_true',
-        help="Replace inside file contents."
-    )
-    parser.add_argument(
-        '-p', '--preview',
-        action='store_true',
-        help="Preview changes without replacing."
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help="Verbose mode."
-    )
-    parser.add_argument(
-        '-H', '--hidden',
-        action='store_true',
-        help="Apply to hidden files and folders."
-    )
+    parser.add_argument('-r', '--recursive', action='store_true', help="Recurse into subdirectories.")
+    parser.add_argument('-F', '--folders', action='store_true', help="Rename folder names.")
+    parser.add_argument('-f', '--files', action='store_true', help="Rename file names.")
+    parser.add_argument('-c', '--content', action='store_true', help="Replace inside file contents.")
+    parser.add_argument('-p', '--preview', action='store_true', help="Preview only; no changes.")
+    parser.add_argument('-P', '--path', dest='rename_paths', action='store_true',
+                        help="Match old_string as relative path and move to new_string path.")
+    parser.add_argument('-v', '--verbose', action='store_true', help="Verbose mode.")
+    parser.add_argument('-H', '--hidden', action='store_true', help="Include hidden files and folders.")
 
     args = parser.parse_args()
+    base_paths = [os.path.expanduser(p) for p in args.paths]
 
+    for base in base_paths:
+        print_verbose(f"Processing: {base}", args.verbose)
+        process_directory(
+            base_path=base,
+            old_string=args.old_string,
+            new_string=args.new_string,
+            recursive=args.recursive,
+            rename_folders=args.folders,
+            rename_files=args.files,
+            replace_in_content=args.content,
+            preview=args.preview,
+            verbose=args.verbose,
+            include_hidden=args.hidden,
+            rename_paths=args.rename_paths
+        )
 
-    # Use os.path.expanduser to expand the tilde to the home directory
-    expanded_paths = [os.path.expanduser(path) for path in args.paths]
-
-    for path in expanded_paths:
-        print_verbose(f"Replacing in path: {path}",args.verbose)
-        process_directory(path, args.old_string, args.new_string, args.recursive, args.folder, args.files, args.content, args.preview, args.verbose, args.hidden)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-
+    main()
