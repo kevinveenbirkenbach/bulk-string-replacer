@@ -65,19 +65,66 @@ def process_directory(base_path, old_string, new_string, recursive, folder, file
             os.rename(old_path, new_path)
 
 def main():
-    parser = argparse.ArgumentParser(description="Replace strings in directories and files.")
-    parser.add_argument('paths', nargs='+', help="Paths in which replacements should be made.")
-    parser.add_argument('old_string', help="The string to be replaced.")
-    parser.add_argument('--new-string', dest='new_string', default="", help="The string to replace with. Default is empty string.")
-    parser.add_argument('--recursive', action='store_true', help="Replace in all subdirectories and files.")
-    parser.add_argument('--folder', action='store_true', help="Replace in folder names.")
-    parser.add_argument('--files', action='store_true', help="Replace in file names.")
-    parser.add_argument('--content', action='store_true', help="Replace inside file contents.")
-    parser.add_argument('--preview', action='store_true', help="Preview changes without replacing.")
-    parser.add_argument('--verbose', action='store_true', help="Verbose mode.")
-    parser.add_argument('--hidden', action='store_true', help="Apply to hidden files and folders.")
+    parser = argparse.ArgumentParser(
+        description="Replace strings in directories and files."
+    )
+
+    # positional args
+    parser.add_argument(
+        'paths',
+        nargs='+',
+        help="Paths in which replacements should be made."
+    )
+    parser.add_argument(
+        'old_string',
+        help="The string to be replaced."
+    )
+
+    # options with short and long flags
+    parser.add_argument(
+        '-n', '--new-string',
+        dest='new_string',
+        default="",
+        help="The string to replace with. Default is empty string."
+    )
+    parser.add_argument(
+        '-r', '--recursive',
+        action='store_true',
+        help="Replace in all subdirectories and files."
+    )
+    parser.add_argument(
+        '-F', '--folder',
+        action='store_true',
+        help="Replace in folder names."
+    )
+    parser.add_argument(
+        '-f', '--files',
+        action='store_true',
+        help="Replace in file names."
+    )
+    parser.add_argument(
+        '-c', '--content',
+        action='store_true',
+        help="Replace inside file contents."
+    )
+    parser.add_argument(
+        '-p', '--preview',
+        action='store_true',
+        help="Preview changes without replacing."
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help="Verbose mode."
+    )
+    parser.add_argument(
+        '-H', '--hidden',
+        action='store_true',
+        help="Apply to hidden files and folders."
+    )
 
     args = parser.parse_args()
+
 
     # Use os.path.expanduser to expand the tilde to the home directory
     expanded_paths = [os.path.expanduser(path) for path in args.paths]
