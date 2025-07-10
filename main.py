@@ -24,17 +24,19 @@ def print_verbose(message, verbose):
 
 def process_directory(base_path, old_string, new_string, recursive,
                       rename_folders, rename_files, replace_in_content,
-                      preview, verbose, include_hidden, rename_paths):
+                      preview, verbose, include_hidden, rename_paths, auto_path):
     """
     Traverse directory tree and perform operations based on flags:
     - replace_in_content: replace inside file contents
     - rename_files: rename files whose names contain old_string
     - rename_folders: rename folders whose names contain old_string
     - rename_paths: match old_string as a relative path and move matching items to new_string path.
-      Additionally, when rename_paths is set, update module paths in Python files by replacing path separators with dots.
+      When rename_paths is set, for each matching line in Python files, show 3 lines of context before and after,
+      and prompt whether to apply slash-based or dot-based replacement, unless auto_path is True.
     """
     # Full-path move logic
     if rename_paths:
+        # Move matching files and folders
         for root, dirs, files in os.walk(base_path):
             if not include_hidden:
                 dirs[:] = [d for d in dirs if not d.startswith('.')]
@@ -51,20 +53,54 @@ def process_directory(base_path, old_string, new_string, recursive,
                         os.rename(full_src, full_dst)
             if not recursive:
                 break
-        # After moving, replace module paths in Python files
+        # Line-by-line replacement in Python files
         for root, dirs, files in os.walk(base_path):
             if not include_hidden:
                 dirs[:] = [d for d in dirs if not d.startswith('.')]
                 files = [f for f in files if not f.startswith('.')]
             for f in files:
                 if f.endswith('.py'):
-                    replace_content(
-                        os.path.join(root, f),
-                        old_string.replace('/', os.sep),
-                        new_string.replace('/', '.'),
-                        preview,
-                        verbose
-                    )
+                    file_path = os.path.join(root, f)
+                    print_verbose(f"Processing Python file for path replacement: {file_path}", verbose)
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as ff:
+                            lines = ff.readlines()
+                    except UnicodeDecodeError:
+                        print_verbose(f"Warning: Unicode decode error in file {file_path}. Skipping.", verbose)
+                        continue
+                    old_slash = old_string.replace('/', os.sep)
+                    new_dot = new_string.replace('/', '.')
+                    changed = False
+                    for idx, line in enumerate(lines):
+                        if old_slash in line:
+                            # Show context
+                            start = max(0, idx - 3)
+                            end = min(len(lines), idx + 4)
+                            print(f"\nContext for replacement in {file_path}, line {idx+1}:")
+                            for i in range(start, end):
+                                prefix = '>' if i == idx else ' '
+                                print(f"{prefix} {i+1}: {lines[i].rstrip()}")
+                            # Determine replacement style
+                            if auto_path:
+                                choice = '1'
+                            else:
+                                choice = None
+                                while choice not in ('1', '2'):
+                                    choice = input(
+                                        f"Replace this line:\n"
+                                        f"  1) slash-based: '{old_slash}' → '{new_string}'\n"
+                                        f"  2) dot-based:   '{old_slash}' → '{new_dot}'\n"
+                                        f"Choose [1/2]: "
+                                    ).strip()
+                            if choice == '1':
+                                lines[idx] = line.replace(old_slash, new_string)
+                            else:
+                                lines[idx] = line.replace(old_slash, new_dot)
+                            changed = True
+                            print_verbose(f"Replaced line {idx+1} in {file_path}", verbose)
+                    if changed and not preview:
+                        with open(file_path, 'w', encoding='utf-8') as fw:
+                            fw.writelines(lines)
             if not recursive:
                 break
         # Only return early when only path-mode is active
@@ -130,6 +166,8 @@ def main():
                         help="Preview only; no changes.")
     parser.add_argument('-P', '--path', dest='rename_paths', action='store_true',
                         help="Match old_string as relative path and move to new_string path.")
+    parser.add_argument('-y', '--yes', dest='auto_path', action='store_true',
+                        help="Skip prompts in Python files and apply slash-based replacement by default.")
     parser.add_argument('-v', '--verbose', action='store_true',
                         help="Verbose mode.")
     parser.add_argument('-H', '--hidden', action='store_true',
@@ -155,7 +193,8 @@ def main():
             preview=args.preview,
             verbose=args.verbose,
             include_hidden=args.hidden,
-            rename_paths=args.rename_paths
+            rename_paths=args.rename_paths,
+            auto_path=args.auto_path
         )
 
 if __name__ == '__main__':
