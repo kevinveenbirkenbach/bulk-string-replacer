@@ -22,6 +22,57 @@ class TestBulkStringReplacer(unittest.TestCase):
             f.write(content)
         return full
 
+    def test_test_prefix_extraction_prompt_no_auto(self):
+        # Setup a test file with test_ prefix
+        src = self.create_file('dir/test_module.py', 'print("hello")')
+        # Monkeypatch input to simulate 'y'
+        inputs = iter(['y'])
+        original_input = __builtins__['input']
+        __builtins__['input'] = lambda _: next(inputs)
+        try:
+            process_directory(
+                base_path=self.base,
+                old_string='module',
+                new_string='module_new',
+                recursive=True,
+                rename_folders=False,
+                rename_files=False,
+                replace_in_content=False,
+                preview=False,
+                verbose=False,
+                include_hidden=True,
+                rename_paths=True,
+                auto_path=False
+            )
+        finally:
+            __builtins__['input'] = original_input
+
+        # After extraction, expect dir/module/test_module_new.py
+        dst = os.path.join(self.base, 'dir', 'module', 'test_module_new.py')
+        self.assertTrue(os.path.exists(dst))
+
+    def test_test_prefix_default_no_extraction_auto(self):
+        # Setup a test file with test_ prefix
+        src = self.create_file('dir/test_file.py', 'print("hello")')
+        process_directory(
+            base_path=self.base,
+            old_string='file',
+            new_string='file_new',
+            recursive=True,
+            rename_folders=False,
+            rename_files=False,
+            replace_in_content=False,
+            preview=False,
+            verbose=False,
+            include_hidden=True,
+            rename_paths=True,
+            auto_path=True
+        )
+        # With auto_path, should do simple path replace: dir/test_file.py -> dir/test_file_new.py
+        dst = os.path.join(self.base, 'dir', 'test_file_new.py')
+        self.assertTrue(os.path.exists(dst))
+
+
     def test_replace_content(self):
         f = self.create_file('foo.txt', 'hello OLD world')
         replace_content(f, 'OLD', 'NEW', preview=False, verbose=False)
