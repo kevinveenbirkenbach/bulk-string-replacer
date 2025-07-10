@@ -109,5 +109,54 @@ class TestBulkStringReplacer(unittest.TestCase):
         with open(f, 'r', encoding='utf-8') as fp:
             self.assertIn('OLD', fp.read())
 
+    def test_module_path_replacement_in_python_files(self):
+        # Prepare a nested Python module under the old path
+        content = 'from old/path import func'
+        src = self.create_file('old/path/module.py', content)
+
+        # Run with -P: should move the file and replace path separators in .py files
+        process_directory(
+            base_path=self.base,
+            old_string='old/path',
+            new_string='old.path',
+            recursive=True,
+            rename_folders=False, rename_files=False,
+            replace_in_content=False,
+            preview=False, verbose=False,
+            include_hidden=True, rename_paths=True
+        )
+
+        # The file should have been moved
+        new_path = os.path.join(self.base, 'old.path', 'module.py')
+        self.assertTrue(os.path.exists(new_path))
+
+        # Its content should have been updated
+        with open(new_path, 'r', encoding='utf-8') as fp:
+            self.assertIn('from old.path import func', fp.read())
+
+    def test_non_python_files_are_not_content_updated(self):
+        # Prepare a non-Python file under the old path
+        content = 'some reference to old/path in text'
+        txt = self.create_file('old/path/readme.txt', content)
+
+        # Run with -P: .txt files get moved but their content stays the same
+        process_directory(
+            base_path=self.base,
+            old_string='old/path',
+            new_string='old.path',
+            recursive=True,
+            rename_folders=False, rename_files=False,
+            replace_in_content=False,
+            preview=False, verbose=False,
+            include_hidden=True, rename_paths=True
+        )
+
+        # The .txt should be moved but its content unchanged
+        new_txt = os.path.join(self.base, 'old.path', 'readme.txt')
+        self.assertTrue(os.path.exists(new_txt))
+        with open(new_txt, 'r', encoding='utf-8') as fp:
+            self.assertIn('old/path', fp.read())
+
+
 if __name__ == '__main__':
     unittest.main()

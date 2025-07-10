@@ -30,7 +30,8 @@ def process_directory(base_path, old_string, new_string, recursive,
     - replace_in_content: replace inside file contents
     - rename_files: rename files whose names contain old_string
     - rename_folders: rename folders whose names contain old_string
-    - rename_paths: match old_string as a relative path and move matching items to new_string
+    - rename_paths: match old_string as a relative path and move matching items to new_string path.
+      Additionally, when rename_paths is set, update module paths in Python files by replacing path separators with dots.
     """
     # Full-path move logic
     if rename_paths:
@@ -48,6 +49,22 @@ def process_directory(base_path, old_string, new_string, recursive,
                     if not preview:
                         os.makedirs(os.path.dirname(full_dst), exist_ok=True)
                         os.rename(full_src, full_dst)
+            if not recursive:
+                break
+        # After moving, replace module paths in Python files
+        for root, dirs, files in os.walk(base_path):
+            if not include_hidden:
+                dirs[:] = [d for d in dirs if not d.startswith('.')]
+                files = [f for f in files if not f.startswith('.')]
+            for f in files:
+                if f.endswith('.py'):
+                    replace_content(
+                        os.path.join(root, f),
+                        old_string.replace('/', os.sep),
+                        new_string.replace('/', '.'),
+                        preview,
+                        verbose
+                    )
             if not recursive:
                 break
         # Only return early when only path-mode is active
